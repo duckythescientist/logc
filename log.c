@@ -33,6 +33,7 @@ static struct {
   log_LockFn lock;
   FILE *fp;
   int level;
+  int filelevel;
   int quiet;
 } L;
 
@@ -81,6 +82,10 @@ void log_set_level(int level) {
   L.level = level;
 }
 
+void log_set_file_level(int level) {
+  L.filelevel = level;
+}
+
 
 void log_set_quiet(int enable) {
   L.quiet = enable ? 1 : 0;
@@ -119,7 +124,7 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
   }
 
   /* Log to file */
-  if (L.fp) {
+  if (L.fp && level >= L.filelevel) {
     va_list args;
     char buf[32];
     buf[strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", lt)] = '\0';
