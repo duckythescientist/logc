@@ -32,4 +32,11 @@ void log_set_quiet(int enable);
 
 void log_log(int level, const char *file, int line, const char *fmt, ...);
 
+#define LOGT log_trace
+#define LOGD log_debug
+#define LOGI log_info
+#define LOGW log_warn
+#define LOGE log_error
+#define LOGF log_fatal
+
 #endif
