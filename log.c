@@ -25,6 +25,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <time.h>
+#include <errno.h>
 
 #include "log.h"
 
@@ -92,10 +93,11 @@ void log_set_quiet(int enable) {
 }
 
 
-void log_log(int level, const char *file, int line, const char *fmt, ...) {
+void log_log(int level, const int do_perror, const char *file, int line, const char *fmt, ...) {
   if (level < L.level) {
     return;
   }
+  int errnum = errno;
 
   /* Acquire lock */
   lock();
@@ -119,6 +121,12 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     va_start(args, fmt);
     vfprintf(stderr, fmt, args);
     va_end(args);
+
+    if (level >= LOG_ERROR && do_perror) {
+      char buf[1024];
+      strerror_r(errnum, buf, sizeof(buf));
+      fprintf(stderr, ": %s", buf);
+    }
     fprintf(stderr, "\n");
     fflush(stderr);
   }
@@ -132,6 +140,11 @@ void log_log(int level, const char *file, int line, const char *fmt, ...) {
     va_start(args, fmt);
     vfprintf(L.fp, fmt, args);
     va_end(args);
+    if (level >= LOG_ERROR && do_perror) {
+      char buf[1024];
+      strerror_r(errnum, buf, sizeof(buf));
+      fprintf(L.fp, ": %s", buf);
+    }
     fprintf(L.fp, "\n");
     fflush(L.fp);
   }
